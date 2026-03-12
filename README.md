@@ -1,4 +1,4 @@
-# Instituto Criativo - Plataforma de Gestão de Eventos
+# UrbanScore
 
 <p align="center">
   <a href="https://www.fecap.br/">
