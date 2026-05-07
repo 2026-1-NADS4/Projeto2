@@ -16,10 +16,10 @@ A solução utiliza dados públicos, estatística, dashboards e algoritmos próp
 | Nome | Perfil |
 |---|---|
 | Pedro Augusto da Silva Macedo | [LinkedIn](https://www.linkedin.com/in/pedro-augusto-da-silva-macedo-9a0200187/) |
-| Cassio | [LinkedIn](https://www.linkedin.com/in/cassio-gama/) |
-| Integrante 3 | LinkedIn |
-| Integrante 4 | LinkedIn |
-| Integrante 5 | LinkedIn |
+| Cassio Gonçalves Gama | [LinkedIn](https://www.linkedin.com/in/cassio-gama/) |
+| Henrique Jorge Martins Figueiredo | [LinkedIn](https://www.linkedin.com/in/henrique-jorge-2b977726b/) |
+| Renan Damprelli Cardoso da Silva | [LinkedIn](https://www.linkedin.com/in/renan-damprelli/) |
+| Luiz Eduardo Souza Rocha | [LinkedIn](https://www.linkedin.com/in/luiz-eduardo-souza-rocha-09aab2321/) |
 
 
 ## 📝 Descrição do Projeto
