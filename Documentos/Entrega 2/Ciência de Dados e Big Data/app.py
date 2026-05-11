@@ -32,10 +32,11 @@ def normalize_text(text):
 st.title("📊 UrbanScore São Paulo")
 
 st.markdown("""
-Dashboard exploratório desenvolvido com dados oficiais do IBGE e SEADE.
+### Plataforma Exploratório de Inteligência Territorial
 
-O objetivo do painel é apresentar padrões territoriais urbanos
-por meio de indicadores demográficos e análise exploratória de dados.
+Dashboard interativo desenvolvido com dados públicos oficiais do IBGE e SEADE para análise demográfica e territorial dos distritos do município de São Paulo.
+
+O objetivo do projeto é transformar dados urbanos em visualizações analíticas capazes de apoiar interpretações sociais, econômicas e territoriais.
 """)
 
 # =========================
@@ -72,7 +73,6 @@ except Exception as e:
 # =========================
 df.columns = df.columns.str.strip().str.lower()
 
-# Renomeia para padrão interno
 df = df.rename(columns={
     "distritos": "nm_dist"
 })
@@ -84,7 +84,8 @@ required_columns = [
     "ano",
     "nm_dist",
     "populacao",
-    "dens_demog"
+    "dens_demog",
+    "id_media"
 ]
 
 missing = [col for col in required_columns if col not in df.columns]
@@ -114,6 +115,17 @@ df["dens_demog"] = pd.to_numeric(
     errors="coerce"
 )
 
+df["id_media"] = (
+    df["id_media"]
+    .astype(str)
+    .str.replace(",", ".", regex=False)
+)
+
+df["id_media"] = pd.to_numeric(
+    df["id_media"],
+    errors="coerce"
+)
+
 df["populacao"] = pd.to_numeric(
     df["populacao"],
     errors="coerce"
@@ -131,7 +143,8 @@ df = df.dropna(subset=[
     "nm_dist",
     "dens_demog",
     "populacao",
-    "ano"
+    "ano",
+    "id_media"
 ])
 
 # =========================
@@ -186,11 +199,17 @@ df_ranking = (
     )
     .head(top_n)
 )
-
+df_idade = (
+    df.sort_values(
+        by="id_media",
+        ascending=False
+    )
+    .head(top_n)
+)
 # =========================
 # KPIs
 # =========================
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 col1.metric(
     "🏆 Maior UrbanScore",
@@ -207,17 +226,23 @@ col3.metric(
     f"{int(df_ranking['populacao'].sum()):,}"
 )
 
+col4.metric(
+    "📊 Densidade média",
+    f"{df_ranking['dens_demog'].mean():,.0f}"
+)
+
 # =========================
 # DESTAQUE
 # =========================
 top = df_ranking.iloc[0]
 
-st.info(f"""
-📍 Distrito com maior UrbanScore no recorte atual:
+st.success(f"""
+### 🏆 Distrito com maior UrbanScore
 
-• Distrito: {top['nm_dist']}
-• UrbanScore: {top['UrbanScore']:.2f}
-• Densidade demográfica: {top['dens_demog']:,.2f}
+- **Distrito:** {top['nm_dist']}
+- **UrbanScore:** {top['UrbanScore']:.2f}
+- **Densidade Demográfica:** {top['dens_demog']:,.2f}
+- **População:** {int(top['populacao']):,}
 """)
 
 # =========================
@@ -241,7 +266,7 @@ fig.update_traces(
 )
 
 fig.update_layout(
-    height=700,
+    height=max(700, top_n * 35),
     xaxis_title="UrbanScore",
     yaxis_title="Distrito",
     showlegend=False
@@ -255,7 +280,7 @@ st.plotly_chart(
 # =========================
 # MAPA INTERATIVO
 # =========================
-st.subheader("🗺️ UrbanScore por Distrito")
+st.subheader("🗺️ Distribuição Territorial do UrbanScore")
 
 fig_map = px.choropleth_mapbox(
     df,
@@ -267,7 +292,8 @@ fig_map = px.choropleth_mapbox(
     hover_data={
         "UrbanScore": True,
         "populacao": True,
-        "dens_demog": True
+        "dens_demog": True,
+        "id_media": True
     },
     color_continuous_scale="Viridis",
     mapbox_style="carto-positron",
@@ -276,7 +302,7 @@ fig_map = px.choropleth_mapbox(
         "lon": -46.63
     },
     zoom=9,
-    opacity=0.7
+    opacity=0.75
 )
 
 fig_map.update_layout(
@@ -317,6 +343,63 @@ st.plotly_chart(
 )
 
 # =========================
+# IDADE MÉDIA
+# =========================
+st.subheader("👥 Idade Média por Distrito")
+
+fig3 = px.bar(
+    df_idade,
+    x="id_media",
+    y="nm_dist",
+    orientation="h",
+    color="id_media",
+    color_continuous_scale="Blues"
+)
+
+fig3.update_layout(
+    xaxis_title="Idade Média",
+    yaxis_title="Distrito",
+    height=max(700, top_n * 35),
+    xaxis=dict(
+        range=[
+            df["id_media"].min() - 1,
+            df["id_media"].max() + 1
+        ]
+    )
+)
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
+
+# =========================
+# CORRELAÇÃO POPULAÇÃO X DENSIDADE
+# =========================
+st.subheader("🏙️ Relação entre População e Densidade")
+
+fig4 = px.scatter(
+    df,
+    x="dens_demog",
+    y="populacao",
+    size="populacao",
+    color="UrbanScore",
+    hover_name="nm_dist",
+    size_max=60
+)
+
+fig4.update_layout(
+    xaxis_title="Densidade Demográfica",
+    yaxis_title="População",
+    height=max(700, top_n * 35)
+)
+
+st.plotly_chart(
+    fig4,
+    use_container_width=True
+)
+
+# =========================
 # TABELA
 # =========================
 st.subheader("📋 Dados Consolidados")
@@ -327,18 +410,37 @@ st.dataframe(
             "nm_dist",
             "populacao",
             "dens_demog",
+            "id_media",
             "UrbanScore"
         ]
-    ],
+    ].sort_values(
+        by="UrbanScore",
+        ascending=False
+    ),
     use_container_width=True
 )
+
+# =========================
+# INSIGHTS
+# =========================
+st.markdown("""
+---
+
+## 📌 Principais Insights
+
+A análise exploratória demonstra que distritos com maiores densidades demográficas tendem a apresentar maior concentração de atividades urbanas e circulação populacional.
+
+O dashboard também evidencia diferenças territoriais relevantes entre os distritos do município de São Paulo, permitindo identificar regiões com diferentes padrões demográficos.
+
+A utilização de visualizações interativas facilita a interpretação dos dados e amplia a acessibilidade das informações urbanas para análises acadêmicas e exploratórias.
+
+---
+""")
 
 # =========================
 # METODOLOGIA
 # =========================
 st.markdown("""
----
-
 ## 📘 Metodologia
 
 O UrbanScore é um indicador exploratório desenvolvido para representar padrões urbanos a partir de dados públicos oficiais.
@@ -348,19 +450,25 @@ O UrbanScore é um indicador exploratório desenvolvido para representar padrõe
 - 50% componente simplificado de infraestrutura urbana
 
 ### Objetivo
-Demonstrar como técnicas de análise de dados podem apoiar interpretações territoriais e visualizações urbanas.
+Demonstrar como técnicas de Big Data e análise de dados podem apoiar interpretações territoriais e visualizações urbanas.
+
+### Tecnologias utilizadas
+- Python
+- Streamlit
+- Plotly
+- Pandas
+
+### Fontes de Dados
+- IBGE — Censo Demográfico
+- SEADE — Indicadores Distritais do Município de São Paulo
+- GeoSampa — Limites territoriais dos distritos
 
 ### Limitações
 Este modelo:
 - não possui finalidade preditiva
 - não representa índice oficial
 - não considera renda, mobilidade ou atividade econômica
-- não deve ser utilizado isoladamente para tomada de decisão
-
-### Fontes
-- IBGE — Censo Demográfico
-- SEADE — Indicadores Distritais do Município de São Paulo
-- GeoSampa — Limites territoriais dos distritos
+- utiliza abordagem exploratória simplificada
 
 ### Natureza da análise
 - exploratória
