@@ -154,4 +154,4 @@ Urbanis/
 
 ---
 
-Desenvolvido por **Urbanis AI Team** | 🎓 _Projeto Integrador de Ciência de Dados e Big Data_
+Desenvolvido por **FourWave** | 🎓 _Projeto Integrador de Ciência de Dados e Big Data_
