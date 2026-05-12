@@ -8,7 +8,7 @@ import unicodedata
 # CONFIGURAÇÃO DA PÁGINA
 # =========================================================
 st.set_page_config(
-    page_title="Urbanis | Inteligência Territorial",
+    page_title="Urbanis: Inteligência Territorial",
     layout="wide",
     page_icon="📊"
 )
@@ -17,6 +17,7 @@ st.set_page_config(
 # FUNÇÃO DE NORMALIZAÇÃO
 # =========================================================
 def normalize_text(text):
+
     text = str(text).upper().strip()
 
     text = ''.join(
@@ -29,7 +30,7 @@ def normalize_text(text):
 # =========================================================
 # HEADER
 # =========================================================
-st.title("📊 Urbanis — Inteligência Territorial")
+st.title("📊 Urbanis: Inteligência Territorial")
 
 st.markdown("""
 ### Plataforma de Análise Urbana e Exploração Territorial
@@ -45,6 +46,7 @@ O projeto utiliza técnicas de Big Data, visualização analítica e inteligênc
 file_path = "assets/estimativa_pop_indicadores_msp.csv"
 
 try:
+
     df = pd.read_csv(
         file_path,
         sep=";",
@@ -52,6 +54,7 @@ try:
     )
 
 except Exception as e:
+
     st.error(f"Erro ao carregar CSV: {e}")
     st.stop()
 
@@ -61,10 +64,12 @@ except Exception as e:
 geojson_path = "assets/distritos-sp.geojson"
 
 try:
+
     with open(geojson_path, "r", encoding="utf-8") as f:
         geojson_data = json.load(f)
 
 except Exception as e:
+
     st.error(f"Erro ao carregar GeoJSON: {e}")
     st.stop()
 
@@ -77,7 +82,9 @@ df.columns = (
     .str.lower()
 )
 
-# Renomeia coluna principal
+# =========================================================
+# RENOMEIA COLUNA PRINCIPAL
+# =========================================================
 df = df.rename(columns={
     "distritos": "nm_dist"
 })
@@ -99,14 +106,18 @@ missing = [
 ]
 
 if missing:
+
     st.error(f"Colunas obrigatórias ausentes: {missing}")
     st.write(df.columns.tolist())
     st.stop()
 
 # =========================================================
-# NORMALIZAÇÃO DE TEXTO
+# NORMALIZAÇÃO TEXTO
 # =========================================================
-df["nm_dist"] = df["nm_dist"].apply(normalize_text)
+df["nm_dist"] = (
+    df["nm_dist"]
+    .apply(normalize_text)
+)
 
 # =========================================================
 # LIMPEZA NUMÉRICA
@@ -160,7 +171,6 @@ df = df.dropna(subset=[
 # =========================================================
 st.sidebar.header("🎛️ Filtros")
 
-# Seleção de ano
 anos = sorted(df["ano"].unique())
 
 ano_escolhido = st.sidebar.selectbox(
@@ -171,7 +181,6 @@ ano_escolhido = st.sidebar.selectbox(
 
 df = df[df["ano"] == ano_escolhido]
 
-# Top N
 top_n = st.sidebar.slider(
     "Quantidade de distritos",
     min_value=5,
@@ -179,27 +188,27 @@ top_n = st.sidebar.slider(
     value=15
 )
 
-# Seleção de distritos
 distritos = st.sidebar.multiselect(
     "Selecionar distritos",
     sorted(df["nm_dist"].unique())
 )
 
 if distritos:
+
     df = df[df["nm_dist"].isin(distritos)]
 
 # =========================================================
 # PROCESSAMENTO
 # =========================================================
-
-# Normalização da densidade
 max_dens = df["dens_demog"].max()
 
 df["UrbanScore"] = (
     ((df["dens_demog"] / max_dens) * 50) + 45.65
 ).round(2)
 
-# Ranking principal
+# =========================================================
+# RANKINGS
+# =========================================================
 df_ranking = (
     df.sort_values(
         by="UrbanScore",
@@ -208,7 +217,6 @@ df_ranking = (
     .head(top_n)
 )
 
-# Ranking idade
 df_idade = (
     df.sort_values(
         by="id_media",
@@ -257,15 +265,15 @@ top = df_ranking.iloc[0]
 st.success(f"""
 ### 🏙️ Distrito com Maior UrbanScore
 
-- **Distrito:** {top['nm_dist']}
-- **UrbanScore:** {top['UrbanScore']:.2f}
-- **População:** {int(top['populacao']):,}
-- **Densidade:** {top['dens_demog']:,.2f}
-- **Idade Média:** {top['id_media']:.1f}
+- Distrito: {top['nm_dist']}
+- UrbanScore: {top['UrbanScore']:.2f}
+- População: {int(top['populacao']):,}
+- Densidade: {top['dens_demog']:,.2f}
+- Idade Média: {top['id_media']:.1f}
 """)
 
 # =========================================================
-# INSIGHTS AUTOMÁTICOS
+# INSIGHTS
 # =========================================================
 bairro_mais_denso = df.loc[df["dens_demog"].idxmax()]
 bairro_menos_denso = df.loc[df["dens_demog"].idxmin()]
@@ -355,29 +363,6 @@ st.plotly_chart(
 )
 
 # =========================================================
-# HISTOGRAMA
-# =========================================================
-st.subheader("📊 Distribuição da Densidade Demográfica")
-
-fig2 = px.histogram(
-    df,
-    x="dens_demog",
-    nbins=20,
-    color_discrete_sequence=["#440154"]
-)
-
-fig2.update_layout(
-    height=500,
-    xaxis_title="Densidade Demográfica",
-    yaxis_title="Quantidade de Distritos"
-)
-
-st.plotly_chart(
-    fig2,
-    use_container_width=True
-)
-
-# =========================================================
 # IDADE MÉDIA
 # =========================================================
 st.subheader("👥 Idade Média por Distrito")
@@ -394,13 +379,7 @@ fig3 = px.bar(
 fig3.update_layout(
     height=max(700, top_n * 35),
     xaxis_title="Idade Média",
-    yaxis_title="Distrito",
-    xaxis=dict(
-        range=[
-            df["id_media"].min() - 1,
-            df["id_media"].max() + 1
-        ]
-    )
+    yaxis_title="Distrito"
 )
 
 st.plotly_chart(
@@ -435,6 +414,207 @@ st.plotly_chart(
 )
 
 # =========================================================
+# BASE CRIMINAL
+# =========================================================
+crime_file = "assets/01 - DADOS CRIMINAIS_JAN_2025_V2.xlsx"
+
+try:
+
+    df_crime = pd.read_excel(crime_file)
+
+    # -----------------------------------------------------
+    # PADRONIZA COLUNAS
+    # -----------------------------------------------------
+    df_crime.columns = (
+        df_crime.columns
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    # -----------------------------------------------------
+    # VALIDA COLUNA DP
+    # -----------------------------------------------------
+    if "dp" in df_crime.columns:
+
+        # -------------------------------------------------
+        # REMOVE PREFIXO "001 DP - "
+        # -------------------------------------------------
+        df_crime["nm_dist"] = (
+            df_crime["dp"]
+            .astype(str)
+            .str.replace(
+                r"^\d+\s*DP\s*-\s*",
+                "",
+                regex=True
+            )
+        )
+
+        # -------------------------------------------------
+        # NORMALIZA
+        # -------------------------------------------------
+        df_crime["nm_dist"] = (
+            df_crime["nm_dist"]
+            .apply(normalize_text)
+        )
+
+        # -------------------------------------------------
+        # AGRUPA
+        # -------------------------------------------------
+        df_crime_grouped = (
+            df_crime.groupby("nm_dist")["2025"].sum()
+            .reset_index(name="total_ocorrencias")
+        )
+
+        # -------------------------------------------------
+        # MERGE
+        # -------------------------------------------------
+        df_crime_merge = df.merge(
+            df_crime_grouped,
+            on="nm_dist",
+            how="left"
+        )
+
+        df_crime_merge["total_ocorrencias"] = (
+            df_crime_merge["total_ocorrencias"]
+            .fillna(0)
+        )
+
+        # =================================================
+        # GRÁFICO CRIMINALIDADE
+        # =================================================
+        st.subheader("🚨 Ocorrências Criminais por Distrito (Janeiro/2025)")
+
+        df_crime_chart = (
+            df_crime_merge.sort_values(
+                by="total_ocorrencias",
+                ascending=False
+            )
+            .head(top_n)
+        )
+
+        fig_crime = px.bar(
+            df_crime_chart.sort_values("total_ocorrencias"),
+            x="total_ocorrencias",
+            y="nm_dist",
+            orientation="h",
+            text="total_ocorrencias",
+            color="total_ocorrencias",
+            color_continuous_scale="Reds"
+        )
+
+        fig_crime.update_traces(
+            textposition="outside"
+        )
+
+        fig_crime.update_layout(
+            height=max(700, top_n * 35),
+            xaxis_title="Quantidade de Ocorrências",
+            yaxis_title="Distrito",
+            showlegend=False
+        )
+
+        st.plotly_chart(
+            fig_crime,
+            use_container_width=True
+        )
+
+# =========================================================
+# MAPA DE CRIMINALIDADE
+# =========================================================
+        if "total_ocorrencias" in df_crime_merge.columns:
+
+            st.subheader("🗺️ Distribuição Territorial da Criminalidade")
+
+            # -----------------------------------------------------
+            # NORMALIZA NOMES NO GEOJSON
+            # -----------------------------------------------------
+            for feature in geojson_data["features"]:
+                feature["properties"]["ds_nome"] = normalize_text(
+                    feature["properties"]["ds_nome"]
+                )
+
+            # -----------------------------------------------------
+            # MERGE CORRIGIDO
+            # -----------------------------------------------------
+            df_crime_map = df_crime_merge.copy()
+
+            df_crime_map["feature_name"] = df_crime_map["nm_dist"]
+
+            # -----------------------------------------------------
+            # MAPA
+            # -----------------------------------------------------
+            fig_crime_map = px.choropleth_mapbox(
+                df_crime_map,
+                geojson=geojson_data,
+                locations="feature_name",
+                featureidkey="properties.ds_nome",
+                color="total_ocorrencias",
+                hover_name="nm_dist",
+                hover_data={
+                    "total_ocorrencias": True,
+                    "UrbanScore": True,
+                    "populacao": True
+                },
+                color_continuous_scale="Reds",
+                mapbox_style="carto-positron",
+                center={
+                    "lat": -23.55,
+                    "lon": -46.63
+                },
+                zoom=9,
+                opacity=0.75
+            )
+
+            fig_crime_map.update_layout(
+                height=800,
+                margin={
+                    "r": 0,
+                    "t": 0,
+                    "l": 0,
+                    "b": 0
+                }
+            )
+
+            st.plotly_chart(
+                fig_crime_map,
+                use_container_width=True
+            )
+        # =================================================
+        # INSIGHT CRIMINAL
+        # =================================================
+        if not df_crime_chart.empty:
+
+            distrito_mais_ocorrencias = (
+                df_crime_chart.iloc[0]
+            )
+
+            st.warning(f"""
+            ### 🚨 Estudo Exploratório de Criminalidade
+
+            - Distrito com maior número de ocorrências:
+              **{distrito_mais_ocorrencias['nm_dist']}**
+
+            - Total de ocorrências:
+              **{int(distrito_mais_ocorrencias['total_ocorrencias'])}**
+
+            ⚠️ Dados referentes apenas ao mês de janeiro de 2025.
+
+            A associação entre DPs e distritos administrativos
+            foi realizada por aproximação nominal.
+            """)
+
+except Exception as e:
+
+    st.warning(f"""
+    Não foi possível carregar a base criminal.
+
+    Erro:
+    {e}
+    """)
+
+    
+# =========================================================
 # TABELA
 # =========================================================
 st.subheader("📋 Dados Consolidados")
@@ -465,20 +645,47 @@ st.markdown("""
 
 A Urbanis propõe uma abordagem orientada a dados para apoiar análises urbanas e territoriais no município de São Paulo.
 
-Por meio da consolidação de indicadores demográficos e espaciais, a plataforma busca auxiliar interpretações relacionadas à distribuição populacional, padrões territoriais e potencial urbano dos distritos.
+A plataforma integra indicadores demográficos, espaciais e exploratórios de segurança pública para permitir interpretações mais amplas sobre dinâmicas urbanas, distribuição populacional e concentração territorial de ocorrências.
+
+Por meio da combinação entre visualização geográfica e análise estatística, o projeto busca transformar dados públicos em informações acessíveis para apoio exploratório à tomada de decisão.
 
 ## Impacto Social
-- democratização do acesso a dados urbanos
-- apoio à visualização de desigualdades territoriais
-- facilitação da interpretação de indicadores públicos
+
+- democratização do acesso a dados urbanos públicos
+- facilitação da interpretação territorial de indicadores sociais
+- apoio à visualização espacial de desigualdades urbanas
+- exploração de padrões territoriais relacionados à segurança pública
+- incentivo à cultura de dados e transparência urbana
+
+A integração exploratória de ocorrências criminais permite observar como diferentes regiões apresentam dinâmicas urbanas distintas, possibilitando análises espaciais complementares sobre infraestrutura, densidade populacional e concentração de registros policiais.
 
 ## Impacto Econômico
-- apoio exploratório para análise de localização
+
+- apoio exploratório para estudos territoriais
+- suporte inicial para análise de expansão urbana
 - identificação de regiões com alta concentração populacional
-- suporte inicial para estudos territoriais e expansão urbana
+- visualização espacial de áreas com maior incidência de ocorrências registradas
+- auxílio preliminar para análises de localização e inteligência territorial
+
+A análise integrada entre densidade demográfica, UrbanScore e ocorrências criminais possibilita compreender padrões urbanos que podem influenciar estudos acadêmicos, planejamento territorial e avaliações exploratórias de regiões urbanas.
 
 ## Aplicação prática
-A proposta da Urbanis é permitir que organizações utilizem dados territoriais para compreender melhor padrões urbanos e apoiar análises baseadas em evidências.
+
+A Urbanis pode ser utilizada como ferramenta acadêmica e exploratória para:
+
+- análise territorial urbana
+- estudos espaciais exploratórios
+- visualização geográfica de indicadores públicos
+- apoio inicial à interpretação de dados urbanos
+- experimentação em projetos de Big Data e Ciência de Dados
+
+## Segurança Pública e Territorialidade
+
+O módulo de criminalidade incorporado ao projeto utiliza dados públicos da SSP-SP referentes ao mês de janeiro de 2025.
+
+Os registros foram associados aos distritos administrativos por aproximação nominal entre Delegacias de Polícia (DPs) e distritos territoriais.
+
+O objetivo do módulo não é realizar previsão criminal ou classificação de risco, mas permitir visualizações exploratórias sobre distribuição espacial de ocorrências no território urbano.
 
 ---
 """)
@@ -508,10 +715,11 @@ Demonstrar como técnicas de Big Data e análise de dados podem apoiar interpret
 - IBGE — Censo Demográfico
 - SEADE — Indicadores Distritais do Município de São Paulo
 - GeoSampa — Limites territoriais dos distritos
+- SSP-SP — Ocorrências Criminais (jan/2025)
 
 ## Próximas expansões planejadas
 - renda média por distrito
-- indicadores de segurança pública
+- indicadores históricos de segurança pública
 - mobilidade urbana
 - análise multicritério
 - score segmentado por atividade econômica
@@ -522,6 +730,7 @@ Este modelo:
 - não representa índice oficial
 - não considera renda ou atividade econômica
 - utiliza abordagem exploratória simplificada
+- utiliza aproximação entre DPs e distritos administrativos
 
 ## Natureza da análise
 - exploratória
