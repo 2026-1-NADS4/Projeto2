@@ -111,10 +111,10 @@ SEGMENTOS = {
     },
     "Restaurante": {
         "dens": 0.30,
-        "mob": 0.35,
+        "mob": 0.40,
         "pop": 0.20,
         "idade": 0.00,
-        "crime": -0.15,
+        "crime": -0.10,
     },
     "Coworking": {
         "dens": 0.25,
@@ -123,7 +123,13 @@ SEGMENTOS = {
         "idade": 0.25,
         "crime": -0.10,
     },
-    "Papelaria": {"dens": 0.40, "mob": 0.25, "pop": 0.35, "idade": 0.00, "crime": 0.00},
+    "Papelaria": {
+        "dens": 0.40,
+        "mob": 0.25,
+        "pop": 0.35,
+        "idade": 0.00,
+        "crime": 0.00,
+    },
     "Loja Premium": {
         "dens": 0.10,
         "mob": 0.30,
@@ -131,7 +137,13 @@ SEGMENTOS = {
         "idade": 0.40,
         "crime": -0.10,
     },
-    "Farmácia": {"dens": 0.45, "mob": 0.30, "pop": 0.25, "idade": 0.00, "crime": 0.00},
+    "Farmácia": {
+        "dens": 0.45,
+        "mob": 0.30,
+        "pop": 0.25,
+        "idade": 0.00,
+        "crime": 0.00,
+    },
 }
 
 
@@ -262,7 +274,12 @@ if not df_transporte.empty:
     df_transporte["distrito"] = df_transporte.apply(
         lambda r: find_distrito_cons(r["latitude"], r["longitude"]), axis=1
     )
-    df_mob_dist = df_transporte.groupby("distrito").size().reset_index(name="n_mob")
+    # Contagem de estações únicas por distrito (evita duplicidade de linhas/modais no mesmo local)
+    df_mob_dist = (
+        df_transporte.groupby("distrito")["estacao"]
+        .nunique()
+        .reset_index(name="n_mob")
+    )
 else:
     df_mob_dist = pd.DataFrame(columns=["distrito", "n_mob"])
 
@@ -384,6 +401,27 @@ st.header("📌 Resumo Executivo & Inteligência de Negócio")
 
 top = df_ranking.iloc[0]
 
+# Gráfico de Composição do Score
+score_components = pd.DataFrame({
+    "Variável": ["Densidade", "Mobilidade", "População", "Idade", "Criminalidade"],
+    "Peso (%)": [
+        pesos["dens"] * 100,
+        pesos["mob"] * 100,
+        pesos["pop"] * 100,
+        pesos["idade"] * 100,
+        abs(pesos["crime"]) * 100
+    ]
+})
+
+fig_score_pie = px.pie(
+    score_components,
+    names="Variável",
+    values="Peso (%)",
+    title=f"🎯 Metodologia de Pesos: {segmento_selecionado}",
+    hole=0.4,
+    color_discrete_sequence=px.colors.qualitative.Pastel
+)
+
 # Colunas para o Resumo e Composição do Score
 exec_col1, exec_col2 = st.columns([1.5, 1])
 
@@ -395,10 +433,13 @@ with exec_col1:
     
     **Narrativa de Decisão:**
     - O UrbanScore de **{top["UrbanScore"]:.2f}** indica uma alta compatibilidade territorial.
-    - Apresenta uma robusta **Conectividade Metroferroviária** ({int(top["n_mob"])} integrações).
+    - Apresenta uma robusta **Conectividade Metroferroviária** ({int(top["n_mob"])} estações únicas).
     - Possui uma **Densidade Demográfica** de {top["dens_demog"]:,.0f} hab/km².
     - A análise sugere um potencial estratégico elevado para implantação imediata, considerando o equilíbrio entre fluxo populacional e segurança relativa.
     """)
+
+with exec_col2:
+    st.plotly_chart(fig_score_pie, use_container_width=True)
 
 with exec_col2:
     st.subheader("🎯 Composição do Score")
