@@ -100,6 +100,18 @@ df_trem = load_transport_data("assets/geoportal_estacao_trem_v2.geojson", "Trem"
 df_transporte = pd.concat([df_metro, df_trem], ignore_index=True)
 
 # =========================================================
+# CONFIGURAÇÃO DE SEGMENTOS E PESOS
+# =========================================================
+SEGMENTOS = {
+    "Modelo Padrão": {"dens": 0.50, "mob": 0.20, "pop": 0.15, "idade": 0.10, "crime": -0.05},
+    "Restaurante": {"dens": 0.30, "mob": 0.35, "pop": 0.20, "idade": 0.00, "crime": -0.15},
+    "Coworking": {"dens": 0.25, "mob": 0.40, "pop": 0.00, "idade": 0.25, "crime": -0.10},
+    "Papelaria": {"dens": 0.40, "mob": 0.25, "pop": 0.35, "idade": 0.00, "crime": 0.00},
+    "Loja Premium": {"dens": 0.10, "mob": 0.30, "pop": 0.10, "idade": 0.40, "crime": -0.10},
+    "Farmácia": {"dens": 0.45, "mob": 0.30, "pop": 0.25, "idade": 0.00, "crime": 0.00},
+}
+
+# =========================================================
 # PROCESSAMENTO DE KPIs DE MOBILIDADE
 # =========================================================
 @st.cache_data
@@ -192,6 +204,45 @@ df["ano"] = pd.to_numeric(df["ano"], errors="coerce")
 df = df.dropna(subset=["nm_dist", "dens_demog", "id_media", "populacao", "ano"])
 
 # =========================================================
+# PRÉ-PROCESSAMENTO CONSOLIDADO (DADOS PARA SCORE)
+# =========================================================
+
+# 1. Consolidação de Mobilidade por Distrito
+# Criar polígonos para mapeamento espacial
+distritos_shapes_cons = [
+    {"nome": normalize_text(f["properties"].get("ds_nome", "N/A")), "shape": shape(f["geometry"])}
+    for f in geojson_data["features"]
+]
+
+def find_distrito_cons(lat, lon):
+    p = Point(lon, lat)
+    for d in distritos_shapes_cons:
+        if d["shape"].contains(p):
+            return d["nome"]
+    return None
+
+if not df_transporte.empty:
+    df_transporte["distrito"] = df_transporte.apply(lambda r: find_distrito_cons(r["latitude"], r["longitude"]), axis=1)
+    df_mob_dist = df_transporte.groupby("distrito").size().reset_index(name="n_mob")
+else:
+    df_mob_dist = pd.DataFrame(columns=["distrito", "n_mob"])
+
+# 2. Consolidação de Criminalidade
+df_crime_cons = pd.DataFrame(columns=["nm_dist", "n_crime"])
+try:
+    df_crime_raw = pd.read_excel("assets/01 - DADOS CRIMINAIS_JAN_2025_V2.xlsx")
+    df_crime_raw.columns = df_crime_raw.columns.astype(str).str.strip().str.lower()
+    if "dp" in df_crime_raw.columns:
+        df_crime_raw["nm_dist"] = df_crime_raw["dp"].astype(str).str.replace(r"^\d+\s*DP\s*-\s*", "", regex=True).apply(normalize_text)
+        df_crime_cons = df_crime_raw.groupby("nm_dist")["2025"].sum().reset_index(name="n_crime")
+except:
+    pass
+
+# 3. Integração no DataFrame Principal
+df = df.merge(df_mob_dist.rename(columns={"distrito": "nm_dist"}), on="nm_dist", how="left").fillna({"n_mob": 0})
+df = df.merge(df_crime_cons, on="nm_dist", how="left").fillna({"n_crime": 0})
+
+# =========================================================
 # SIDEBAR
 # =========================================================
 st.sidebar.header("🎛️ Filtros")
@@ -213,12 +264,41 @@ distritos = st.sidebar.multiselect(
 if distritos:
     df = df[df["nm_dist"].isin(distritos)]
 
-# =========================================================
-# PROCESSAMENTO
-# =========================================================
-max_dens = df["dens_demog"].max()
+st.sidebar.markdown("---")
+st.sidebar.subheader("🎯 Inteligência de Negócio")
+segmento_selecionado = st.sidebar.selectbox(
+    "Segmento de Negócio", 
+    list(SEGMENTOS.keys()), 
+    help="O UrbanScore será recalculado com pesos específicos para o setor escolhido."
+)
+pesos = SEGMENTOS[segmento_selecionado]
 
-df["UrbanScore"] = (((df["dens_demog"] / max_dens) * 50) + 45.65).round(2)
+# =========================================================
+# MOTOR DO URBANSCORE ADAPTATIVO
+# =========================================================
+def min_max_scale(series):
+    if series.max() == series.min():
+        return series * 0
+    return (series - series.min()) / (series.max() - series.min())
+
+# Normalização das variáveis core
+df["dens_norm"] = min_max_scale(df["dens_demog"])
+df["mob_norm"] = min_max_scale(df["n_mob"])
+df["pop_norm"] = min_max_scale(df["populacao"])
+df["idade_norm"] = min_max_scale(df["id_media"])
+df["crime_norm"] = min_max_scale(df["n_crime"])
+
+# Cálculo do Score Combinado
+df["UrbanScore"] = (
+    (df["dens_norm"] * pesos["dens"]) +
+    (df["mob_norm"] * pesos["mob"]) +
+    (df["pop_norm"] * pesos["pop"]) +
+    (df["idade_norm"] * pesos["idade"]) +
+    (df["crime_norm"] * pesos["crime"])  # Note que o peso do crime já é negativo no dicionário
+)
+
+# Ajuste de escala para visualização (0 a 100)
+df["UrbanScore"] = (min_max_scale(df["UrbanScore"]) * 100).round(2)
 
 # =========================================================
 # RANKINGS
@@ -230,7 +310,7 @@ df_idade = df.sort_values(by="id_media", ascending=False).head(top_n)
 # =========================================================
 # KPIs
 # =========================================================
-st.subheader("📌 Indicadores Gerais")
+st.subheader(f"📌 Indicadores Gerais: {segmento_selecionado}")
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -340,6 +420,8 @@ m_col1.metric("Total de Integrações", total_est)
 m_col2.metric("Maior Conectividade", f"{top_dist} ({top_val})")
 m_col3.metric("Pontos de Metrô", total_m)
 m_col4.metric("Pontos de Trem", total_t)
+
+st.info("💡 **Nota sobre Conectividade:** A contagem de integrações reflete todos os pontos de acesso e conexões de linhas dentro do território do distrito. Distritos com estações de integração (ex: Ana Rosa, Santa Cruz) apresentam números maiores pois cada linha é contabilizada como um ponto de conectividade.")
 
 if not df_transporte.empty:
     fig_transp = px.scatter_mapbox(
