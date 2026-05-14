@@ -185,7 +185,7 @@ function AuditSummary({ data, type, color }: any) {
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[10px] font-mono font-bold text-foreground">FLUXO: {((data.n_mob || 0) / 1000).toFixed(1)}k/dia</span>
+              <span className="text-[10px] font-mono font-bold text-foreground">FLUXO: {data.n_mob ? (Math.exp(data.n_mob) - 1).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : '0'} /dia</span>
             </div>
           </div>
         </div>

@@ -94,7 +94,10 @@ export function ChoroplethMap() {
         `<div style="font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px;">
           <b style="font-size: 12px; color: ${theme === 'dark' ? '#fff' : '#000'}">${dData.nm_dist}</b><br/>
           <span style="opacity: 0.7">URBANSCORE:</span> <b style="color: ${getUrbanScoreColor(score || 0)}">${score?.toFixed(1)}</b><br/>
-          <span style="opacity: 0.7">ESTAÇÕES:</span> ${dData.n_stations || 0}
+          <hr style="margin: 4px 0; border: 0; border-top: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}" />
+          <span style="opacity: 0.7">FLUXO (Diário):</span> ${dData.n_mob ? (Math.exp(dData.n_mob) - 1).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : '0'}<br/>
+          <span style="opacity: 0.7">ESTAÇÕES:</span> ${dData.n_stations || 0}<br/>
+          <span style="opacity: 0.7">CRIME:</span> ${dData.n_crime || 0}
         </div>`,
         { sticky: true, className: 'leaflet-custom-tooltip' }
       );
