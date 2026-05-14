@@ -1,4 +1,5 @@
 import { useUrbanStore } from "@/store/useUrbanStore";
+import { getUrbanScoreColor } from "@/lib/colors";
 import {
   BarChart,
   Bar,
@@ -7,22 +8,27 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell
 } from "recharts";
 
-export function RankingChart() {
+interface RankingChartProps {
+  limit?: number;
+}
+
+export function RankingChart({ limit = 10 }: RankingChartProps) {
   const { districts } = useUrbanStore();
-  const top10 = districts.slice(0, 10);
+  const displayData = districts.slice(0, limit);
 
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex-1 min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={top10}
+            data={displayData}
             layout="vertical"
             margin={{ top: 0, right: 40, left: 30, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="currentColor" className="text-border" opacity={0.5} />
             <XAxis type="number" domain={[0, 100]} hide />
             <YAxis
               dataKey="nm_dist"
@@ -30,34 +36,41 @@ export function RankingChart() {
               axisLine={false}
               tickLine={false}
               width={100}
-              tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700, fontFamily: "JetBrains Mono" }}
+              tick={{ fill: "currentColor", fontSize: 10, fontWeight: 700, fontFamily: "DM Mono" }}
+              className="text-muted-foreground"
             />
             <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.03)" }}
+              cursor={{ fill: "currentColor", opacity: 0.05 }}
               contentStyle={{ 
-                backgroundColor: "#16181B", 
-                border: "1px solid rgba(255,255,255,0.1)", 
+                backgroundColor: "hsl(var(--card))", 
+                border: "1px solid hsl(var(--border))", 
                 borderRadius: "8px",
                 fontSize: "12px",
-                fontFamily: "JetBrains Mono",
+                fontFamily: "DM Mono",
                 boxShadow: "none"
               }}
-              itemStyle={{ color: "#C0192B" }}
               formatter={(value: number) => [value.toFixed(1), "URBANSCORE"]}
             />
             <Bar
               dataKey="UrbanScore"
-              fill="#C0192B"
               radius={[0, 2, 2, 0]}
-              barSize={24}
+              barSize={20}
               label={{ 
                 position: 'right', 
-                fill: "#f8fafc", 
+                fill: "currentColor", 
                 fontSize: 10, 
-                fontFamily: "JetBrains Mono",
+                fontFamily: "DM Mono",
                 formatter: (v: number) => v.toFixed(1) 
               }}
-            />
+              className="text-foreground"
+            >
+              {displayData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={getUrbanScoreColor(entry.UrbanScore || 0)} 
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

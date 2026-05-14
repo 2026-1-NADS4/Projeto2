@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import logo from "@/assets/urbanis_logo_transparent.png";
 
 export function Sidebar() {
-  const { selectedSegment, setSegment } = useUrbanStore();
+  const { selectedSegment, setSegment, theme } = useUrbanStore();
   const location = useLocation();
 
   const navItems = [
@@ -14,7 +14,7 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 border-r border-border bg-card h-screen flex flex-col fixed left-0 top-0 z-50">
+    <aside className="w-64 border-r border-white/5 bg-[#101113] text-slate-200 h-screen flex flex-col fixed left-0 top-0 z-50 transition-fast">
       <div className="p-8 pb-4 flex justify-start">
         <img src={logo} alt="Urbanis Logo" className="h-12 w-auto object-contain brightness-110" />
       </div>
@@ -28,7 +28,7 @@ export function Sidebar() {
               to={item.to}
               className={`flex items-center gap-3 px-8 py-3.5 font-medium text-sm transition-fast relative ${isActive
                 ? 'bg-primary/10 text-primary border-l-4 border-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/5 border-l-4 border-transparent'
+                : 'text-slate-400 hover:text-white hover:bg-white/5 border-l-4 border-transparent'
                 }`}
             >
               <item.icon className="w-4 h-4" />
@@ -38,20 +38,20 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-6 border-t border-border bg-[#101113]/40">
+      <div className="p-6 border-t border-white/5 bg-[#16181B]/40">
         <div className="mb-4 flex items-center gap-2">
-          <Settings className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground tracking-widest">
+          <Settings className="w-3.5 h-3.5 text-slate-500" />
+          <span className="text-[10px] font-mono font-bold uppercase text-slate-500 tracking-widest">
             Configuração
           </span>
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">Segmento de Mercado</label>
+            <label className="text-[9px] uppercase font-bold text-slate-500 tracking-tighter">Segmento de Mercado</label>
             <select
               value={selectedSegment}
               onChange={(e) => setSegment(e.target.value)}
-              className="w-full h-10 rounded-md border border-border bg-[#101113] px-3 py-1 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary transition-fast appearance-none cursor-pointer"
+              className="w-full h-10 rounded-md border border-white/10 bg-[#101113] px-3 py-1 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary transition-fast appearance-none cursor-pointer text-slate-200"
             >
               {Object.keys(SEGMENTS).map((segment) => (
                 <option key={segment} value={segment}>
@@ -60,17 +60,17 @@ export function Sidebar() {
               ))}
             </select>
           </div>
-
-          <div className="p-4 bg-[#101113] border border-border rounded-lg">
+          
+          <div className="p-4 bg-[#101113] border border-white/10 rounded-lg">
             <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-primary mb-2 tracking-widest">
               <ShieldAlert className="w-3.5 h-3.5" />
               Sensibilidade ao Risco
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-mono font-bold text-foreground leading-none">
+              <span className="text-2xl font-mono font-bold text-white leading-none">
                 {(SEGMENTS[selectedSegment]?.alpha || 0) * 100}
               </span>
-              <span className="text-xs font-mono text-muted-foreground">%</span>
+              <span className="text-xs font-mono text-slate-500">%</span>
             </div>
           </div>
         </div>

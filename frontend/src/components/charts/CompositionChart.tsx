@@ -16,9 +16,9 @@ export function CompositionChart() {
   if (!weights) return null;
 
   const data = [
-    { name: "INFRASTRUCTURE", value: (weights.infra.dens + weights.infra.mob) * weights.balance.infra * 100, color: "#334155" },
-    { name: "MARKET POTENTIAL", value: (weights.market.central + weights.market.pop + weights.market.idade) * weights.balance.market * 100, color: "#C0192B" },
-    { name: "RISK PROFILE", value: weights.alpha * 100, color: "#101113" }
+    { name: "INFRAESTRUTURA", value: (weights.infra.dens + weights.infra.mob) * weights.balance.infra * 100, color: "hsl(var(--viz-infra))" },
+    { name: "POTENCIAL MERCADO", value: (weights.market.central + weights.market.pop + weights.market.idade) * weights.balance.market * 100, color: "hsl(var(--viz-market))" },
+    { name: "PERFIL DE RISCO", value: weights.alpha * 100, color: "hsl(var(--viz-risk))" }
   ];
 
   return (
@@ -34,8 +34,8 @@ export function CompositionChart() {
               outerRadius={85}
               paddingAngle={4}
               dataKey="value"
-              stroke="rgba(255,255,255,0.05)"
-              strokeWidth={1}
+              stroke="hsl(var(--card))"
+              strokeWidth={2}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -43,19 +43,19 @@ export function CompositionChart() {
             </Pie>
             <Tooltip
               contentStyle={{ 
-                backgroundColor: "#16181B", 
-                border: "1px solid rgba(255,255,255,0.1)", 
+                backgroundColor: "hsl(var(--card))", 
+                border: "1px solid hsl(var(--border))", 
                 borderRadius: "8px",
                 fontSize: "10px",
-                fontFamily: "JetBrains Mono",
+                fontFamily: "DM Mono",
                 boxShadow: "none"
               }}
-              formatter={(value: number) => [`${value.toFixed(1)}%`, "WEIGHT"]}
+              formatter={(value: number) => [`${value.toFixed(1)}%`, "PESO"]}
             />
             <Legend 
               verticalAlign="bottom" 
               height={36} 
-              iconType="square"
+              iconType="circle"
               formatter={(value) => <span className="text-[10px] font-bold text-muted-foreground font-mono">{value}</span>}
             />
           </PieChart>

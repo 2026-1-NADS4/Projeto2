@@ -77,19 +77,21 @@ export function Dashboard() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <CardHeader className="border-b border-border bg-[#101113]/20 py-4">
-            <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Ranking de Performance por Distrito</CardTitle>
+          <CardHeader className="border-b border-border bg-muted/20 py-4">
+            <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Ranking de Performance (Top 30)</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 h-[400px]">
-            <RankingChart />
+          <CardContent className="pt-6 h-[500px] overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <div style={{ height: '800px' }}>
+              <RankingChart limit={30} />
+            </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="border-b border-border bg-[#101113]/20 py-4">
+          <CardHeader className="border-b border-border bg-muted/20 py-4">
             <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Matriz de Pesos Efetivos</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 h-[400px]">
+          <CardContent className="pt-6 h-[500px]">
             <CompositionChart />
           </CardContent>
         </Card>
@@ -98,10 +100,10 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
           <Card className="h-full">
-            <CardHeader className="border-b border-border bg-[#101113]/20 py-4">
-              <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Distribuição Espacial do Score</CardTitle>
+            <CardHeader className="border-b border-border bg-muted/20 py-4">
+              <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Distribuição Territorial Multicamada</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 h-[600px]">
+            <CardContent className="p-0 h-[650px]">
               <ChoroplethMap />
             </CardContent>
           </Card>
@@ -109,13 +111,13 @@ export function Dashboard() {
         
         <div className="lg:col-span-2">
           <Card className="h-full flex flex-col">
-            <CardHeader className="border-b border-border bg-[#101113]/20 py-4">
+            <CardHeader className="border-b border-border bg-muted/20 py-4">
               <CardTitle className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Top 10 Polos de Performance</CardTitle>
             </CardHeader>
             <div className="flex-1 overflow-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-[#101113]/40">
+                  <tr className="border-b border-border bg-muted/40">
                     <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Distrito</th>
                     <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Score</th>
                     <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Status</th>
@@ -123,7 +125,7 @@ export function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {districts.slice(0, 10).map((d) => (
-                    <tr key={d.nm_dist} className="hover:bg-white/5 transition-fast group">
+                    <tr key={d.nm_dist} className="hover:bg-muted/30 transition-fast group">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-foreground group-hover:text-primary transition-fast">{d.nm_dist}</span>
@@ -135,11 +137,11 @@ export function Dashboard() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <span className={`text-[9px] font-bold px-2 py-1 rounded uppercase tracking-tighter ${
-                          d.UrbanScore! > 70 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
-                          d.UrbanScore! > 45 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
+                          d.UrbanScore! >= 75 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                          d.UrbanScore! >= 50 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
                           'bg-red-500/10 text-red-500 border border-red-500/20'
                         }`}>
-                          {d.UrbanScore! > 70 ? 'Ideal' : d.UrbanScore! > 45 ? 'Moderado' : 'Crítico'}
+                          {d.UrbanScore! >= 75 ? 'Ideal' : d.UrbanScore! >= 50 ? 'Moderado' : 'Crítico'}
                         </span>
                       </td>
                     </tr>
@@ -147,7 +149,7 @@ export function Dashboard() {
                 </tbody>
               </table>
             </div>
-            <div className="p-4 border-t border-border bg-[#101113]/20 flex justify-center">
+            <div className="p-4 border-t border-border bg-muted/20 flex justify-center">
               <button className="text-[10px] font-mono font-bold uppercase text-muted-foreground hover:text-primary transition-fast">Auditoria Territorial Completa</button>
             </div>
           </Card>
@@ -162,7 +164,7 @@ function StatCard({ title, value, unit, icon: Icon, trend, primary }: any) {
     <Card className={`relative overflow-hidden transition-fast group hover:border-primary/50 ${primary ? 'border-primary/30 bg-primary/5' : ''}`}>
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-2 rounded ${primary ? 'bg-primary text-white' : 'bg-[#101113] text-muted-foreground group-hover:text-primary transition-fast'}`}>
+          <div className={`p-2 rounded ${primary ? 'bg-primary text-white' : 'bg-muted text-muted-foreground group-hover:text-primary transition-fast'}`}>
             <Icon className="w-4 h-4" />
           </div>
           <div className={`flex items-center gap-1 text-[10px] font-bold font-mono ${trend.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>

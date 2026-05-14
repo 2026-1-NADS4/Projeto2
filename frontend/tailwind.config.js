@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -45,6 +46,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart: {
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+        },
+        viz: {
+          infra: "hsl(var(--viz-infra))",
+          market: "hsl(var(--viz-market))",
+          risk: "hsl(var(--viz-risk))",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",

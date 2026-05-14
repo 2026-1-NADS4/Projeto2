@@ -6,17 +6,33 @@ import { SEGMENTS } from '../config/segments';
 interface UrbanStore {
   selectedSegment: string;
   districts: DistrictData[];
+  theme: 'dark' | 'light';
   setSegment: (segment: string) => void;
   calculateScores: (segment: string) => void;
+  toggleTheme: () => void;
+  initTheme: () => void;
 }
 
 export const useUrbanStore = create<UrbanStore>((set, get) => ({
   selectedSegment: "Logística Last-Mile",
   districts: [],
+  theme: (localStorage.getItem('urbanis-theme') as 'dark' | 'light') || 'dark',
 
   setSegment: (segment: string) => {
     set({ selectedSegment: segment });
     get().calculateScores(segment);
+  },
+
+  toggleTheme: () => {
+    const newTheme = get().theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('urbanis-theme', newTheme);
+    set({ theme: newTheme });
+    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  },
+
+  initTheme: () => {
+    const theme = get().theme;
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   },
 
   calculateScores: (segment: string) => {
@@ -26,23 +42,15 @@ export const useUrbanStore = create<UrbanStore>((set, get) => ({
     const { infra, market, risk, balance, alpha } = weights;
 
     const scoredDistricts = (rawData as DistrictData[]).map((d) => {
-      // Camada 1: Infraestrutura
       const infraScore = d.dens_norm * infra.dens + d.mob_norm * infra.mob;
-
-      // Camada 2: Mercado
       const marketScore =
         d.central_norm * market.central +
         d.pop_norm * market.pop +
         d.idade_norm * market.idade;
-
-      // Camada 3: Oportunidade Consolidada
       const opportunityScore =
         infraScore * balance.infra + marketScore * balance.market;
-
-      // Camada 4: Risco Multiplicativo
       const riskScore = d.crime_norm * risk.crime + d.vulner_norm * risk.socio;
 
-      // Equação Final v4.1
       let urbanScore = opportunityScore * (1 - alpha * riskScore);
       urbanScore = Math.max(0, Math.min(1, urbanScore)) * 100;
 
@@ -56,12 +64,11 @@ export const useUrbanStore = create<UrbanStore>((set, get) => ({
       };
     });
 
-    // Ordenar pelo UrbanScore decrescente
     scoredDistricts.sort((a, b) => (b.UrbanScore || 0) - (a.UrbanScore || 0));
-
     set({ districts: scoredDistricts });
   },
 }));
 
 // Initialize the store immediately
 useUrbanStore.getState().calculateScores(useUrbanStore.getState().selectedSegment);
+useUrbanStore.getState().initTheme();

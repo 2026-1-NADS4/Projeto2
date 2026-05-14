@@ -2,6 +2,7 @@ import React from "react";
 import { Sidebar } from "./Sidebar";
 import { Bell, Search, User, Globe } from "lucide-react";
 import logo from "@/assets/urbanis_logo_transparent.png";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       <div className="pl-64 flex flex-col min-h-screen">
-        <header className="h-14 border-b border-border bg-[#16181B]/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-10 transition-fast">
+        <header className="h-14 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-10 transition-fast">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-6 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
               <div className="flex items-center gap-2">
@@ -19,12 +20,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span className="opacity-10 text-lg font-light">|</span>
               <div className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-foreground font-bold">Painel Territorial</span>
+                <span className="text-foreground font-bold font-sans tracking-normal capitalize">Painel Territorial</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground transition-fast border border-transparent hover:border-border rounded-md">
               <Search className="w-4 h-4" />
             </button>
