@@ -1,73 +1,81 @@
-# React + TypeScript + Vite
+# 📊 Urbanis Dashboard — Frontend Analítico
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este é o diretório da interface **SaaS/BI** do projeto Urbanis. Desenvolvido com uma stack moderna de alta performance para visualização de dados territoriais e inteligência de localização.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🎨 Design System & UX
 
-## React Compiler
+A interface foi projetada seguindo os princípios de **Dashboards de Alta Densidade**:
+- **Estética Enterprise**: Cores sóbrias, tipografia técnica (`DM Mono` para dados) e headers condensados.
+- **Dual Theme**: Suporte total a **Dark Mode** (default para análise) e **Light Mode** (para relatórios e leitura).
+- **Semântica Analítica**: Escala de cores `Viridis` e thresholds determinísticos para evitar falsas interpretações de performance.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Stack Tecnológica
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Core**: [React 18](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Shadcn/UI](https://ui.shadcn.com/)
+- **Maps**: [React-Leaflet](https://react-leaflet.js.org/)
+- **Charts**: [Recharts](https://recharts.org/)
+- **State**: [Zustand](https://github.com/pmndrs/zustand) (Gerenciamento de filtros e temas)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Funcionalidades Principais
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 🗺️ Geo-Intelligence (ChoroplethMap)
+Mapa interativo com troca dinâmica de camadas:
+- **UrbanScore**: Aderência estratégica (Escala Viridis).
+- **Mobilidade**: Fluxo de passageiros e estações (Metrô/Trem 🔵🔴).
+- **Segurança**: Calor de ocorrências criminais (Reds).
+- **Idade Média**: Perfil demográfico (Blues).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 📈 Dashboard & Rankings
+- Gráficos de barra dinâmicos com suporte a até 30 distritos.
+- KPIs em tempo real baseados no segmento de negócio selecionado.
+- Recomendações narrativas automatizadas via motor analítico.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 🔍 Auditoria Cruzada (Compare)
+Módulo dedicado para comparação técnica entre dois distritos, com matriz de performance e detalhamento de infraestrutura vs. mercado.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 📂 Estrutura de Pastas
+
+- `src/components/charts`: Componentes Recharts customizados.
+- `src/components/dashboard`: Componentes geospaciais e mapa.
+- `src/components/layout`: Sidebar, Layout e navegação.
+- `src/pages`: Páginas de Dashboard, Comparação e Configurações.
+- `src/store`: Estado global via Zustand.
+- `src/data`: JSON consolidado gerado pelo motor Python.
+- `scripts`: Utilitários para processamento de GeoJSON e coordenadas.
+
+---
+
+## 🔧 Como Iniciar
+
+1. **Instale as dependências**:
+   ```bash
+   npm install
+   ```
+
+2. **Certifique-se de que o arquivo de dados existe**:
+   Verifique se `src/data/urbanis_data.json` foi gerado pelo motor principal.
+
+3. **Inicie o servidor de desenvolvimento**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Build para Produção**:
+   ```bash
+   npm run build
+   ```
+
+---
+
+Desenvolvido por **FourWave** | 🎓 _Urban Intelligence Platform_
